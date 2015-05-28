@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/apikit http://www.mulesoft.org/schema/mule/apikit/current/mule-apikit.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd" version="EE-3.6.1">
+    <http:listener-config name="songs-api-httpListenerConfig" host="localhost" port="8081" doc:name="HTTP Listener Configuration"/>
+    <apikit:config name="songs-api-config" raml="songs-api.raml" consoleEnabled="true" consolePath="console" doc:name="Router"/>
+    <apikit:mapping-exception-strategy name="songs-api-apiKitGlobalExceptionMapping">
+        <apikit:mapping statusCode="404">
+            <apikit:exception value="org.mule.module.apikit.exception.NotFoundException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Resource not found&quot; }" doc:name="Set Payload"/>
+        </apikit:mapping>
+        <apikit:mapping statusCode="405">
+            <apikit:exception value="org.mule.module.apikit.exception.MethodNotAllowedException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Method not allowed&quot; }" doc:name="Set Payload"/>
+        </apikit:mapping>
+        <apikit:mapping statusCode="415">
+            <apikit:exception value="org.mule.module.apikit.exception.UnsupportedMediaTypeException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Unsupported media type&quot; }" doc:name="Set Payload"/>
+        </apikit:mapping>
+        <apikit:mapping statusCode="406">
+            <apikit:exception value="org.mule.module.apikit.exception.NotAcceptableException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Not acceptable&quot; }" doc:name="Set Payload"/>
+        </apikit:mapping>
+        <apikit:mapping statusCode="400">
+            <apikit:exception value="org.mule.module.apikit.exception.BadRequestException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Bad request&quot; }" doc:name="Set Payload"/>
+        </apikit:mapping>
+    </apikit:mapping-exception-strategy>
+    <flow name="songs-api-main">
+        <http:listener config-ref="songs-api-httpListenerConfig" path="/api/*" doc:name="HTTP"/>
+        <apikit:router config-ref="songs-api-config" doc:name="APIkit Router"/>
+        <exception-strategy ref="songs-api-apiKitGlobalExceptionMapping" doc:name="Reference Exception Strategy"/>
+    </flow>
+    <flow name="get:/songs:songs-api-config">
+        <set-payload value="&quot;songs&quot;: [&#xA;    {&#xA;      &quot;songId&quot;: &quot;550e8400-e29b-41d4-a716-446655440000&quot;,&#xA;      &quot;songTitle&quot;: &quot;Get Lucky&quot;&#xA;    },&#xA;    {&#xA;      &quot;songId&quot;: &quot;550e8400-e29b-41d4-a716-446655440111&quot;,&#xA;      &quot;songTitle&quot;: &quot;Loose yourself to dance&quot;&#xA;    },&#xA;    {&#xA;      &quot;songId&quot;: &quot;550e8400-e29b-41d4-a716-446655440222&quot;,&#xA;      &quot;songTitle&quot;: &quot;Gio sorgio by Moroder&quot;&#xA;    }&#xA;    ]" doc:name="Set Payload"/>
+    </flow>
+    <flow name="get:/songs/{songId}:songs-api-config">
+        <set-payload value="{&#xA;  &quot;songId&quot;: &quot;550e8400-e29b-41d4-a716-446655440000&quot;,&#xA;  &quot;songTitle&quot;: &quot;Get Lucky&quot;,&#xA;  &quot;duration&quot;: &quot;6:07&quot;,&#xA;  &quot;artist&quot;: {&#xA;    &quot;artistId&quot;: &quot;110e8300-e32b-41d4-a716-664400445500&quot;&#xA;    &quot;artistName&quot;: &quot;Daft Punk&quot;,&#xA;    &quot;imageURL&quot;: &quot;http://travelhymns.com/wp-content/uploads/2013/06/random-access-memories1.jpg&quot;&#xA;  },&#xA;  &quot;album&quot;: {&#xA;    &quot;albumId&quot;: &quot;183100e3-0e2b-4404-a716-66104d440550&quot;,&#xA;    &quot;albumName&quot;: &quot;Random Access Memories&quot;,&#xA;    &quot;imageURL&quot;: &quot;http://upload.wikimedia.org/wikipedia/en/a/a7/Random_Access_Memories.jpg&quot;&#xA;  }&#xA;}" doc:name="Set Payload"/>
+    </flow>
+    <flow name="get:/songs/{songId}/file-content:songs-api-config">
+        <set-payload value="#[NullPayload.getInstance()]" doc:name="Set Payload"/>
+    </flow>
+    <flow name="post:/songs:songs-api-config">
+        <set-payload value="#[NullPayload.getInstance()]" doc:name="Set Payload"/>
+    </flow>
+    <flow name="post:/songs/{songId}/file-content:songs-api-config">
+        <set-payload value="#[NullPayload.getInstance()]" doc:name="Set Payload"/>
+    </flow>
+</mule>
